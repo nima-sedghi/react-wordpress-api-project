@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>react-wordpress-api-project</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      body {
+        background-color: #f0f2f5;
+        font-family: "Tahoma", sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      .search-box {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 30px;
+        border: 2px solid #0073aa;
+        border-radius: 8px;
+        font-size: 16px;
+        outline: none;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: 0.3s;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+      }
+      .card-img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+      }
+      .card-content {
+        padding: 15px;
+      }
+      .card-title {
+        font-size: 1.1rem;
+        color: #333;
+        margin: 0 0 10px 0;
+        height: 50px;
+        overflow: hidden;
+      }
+      .btn {
+        display: inline-block;
+        background: #0073aa;
+        color: white;
+        padding: 8px 16px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      .loading {
+        text-align: center;
+        font-size: 20px;
+        margin-top: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      function WordPressApp() {
+        const [posts, setPosts] = React.useState([]);
+        const [loading, setLoading] = React.useState(true);
+        const [searchTerm, setSearchTerm] = React.useState("");
+
+        React.useEffect(() => {
+          const apiUrl = "https://localhost/project/wp-json/wp/v2/posts?_embed";
+
+          fetch(apiUrl)
+            .then((res) => res.json())
+            .then((data) => {
+              setPosts(data);
+              setLoading(false);
+            })
+            .catch((err) => {
+              console.error("خطا در دریافت دیتا:", err);
+              setLoading(false);
+            });
+        }, []);
+
+        const filteredPosts = posts.filter((post) =>
+          post.title.rendered.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+
+        if (loading)
+          return <div className="loading">در حال بارگذاری مقالات...</div>;
+
+        return (
+          <div className="container">
+            <h1 style={{ textAlign: "center", color: "#0073aa" }}>
+              پنل نمایش مقالات (React + WP)
+            </h1>
+
+            {}
+            <input
+              type="text"
+              className="search-box"
+              placeholder="جستجو در بین عناوین..."
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
+            <div className="grid">
+              {filteredPosts.length > 0 ? (
+                filteredPosts.map((post) => (
+                  <div key={post.id} className="card">
+                    <img
+                      className="card-img"
+                      src={
+                        post._embedded && post._embedded["wp:featuredmedia"]
+                          ? post._embedded["wp:featuredmedia"][0].source_url
+                          : "https://via.placeholder.com/300x180"
+                      }
+                    />
+                    <div className="card-content">
+                      <h2 className="card-title">{post.title.rendered}</h2>
+                      <a href={post.link} target="_blank" className="btn">
+                        مشاهده جزئیات
+                      </a>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>مقاله‌ای پیدا نشد.</p>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<WordPressApp />);
+    </script>
+  </body>
+</html>
