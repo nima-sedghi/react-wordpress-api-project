@@ -70,6 +70,25 @@
         font-size: 20px;
         margin-top: 50px;
       }
+
+      .loader {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #0073aa;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 50px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
@@ -82,16 +101,19 @@
         const [searchTerm, setSearchTerm] = React.useState("");
 
         React.useEffect(() => {
-          const apiUrl = 'https://techcrunch.com/wp-json/wp/v2/posts?_embed';
+          const apiUrl = "https://techcrunch.com/wp-json/wp/v2/posts?_embed";
 
           fetch(apiUrl)
-            .then((res) => res.json())
+            .then((res) => {
+              if (!res.ok) throw new Error("خطا در شبکه");
+              return res.json();
+            })
             .then((data) => {
               setPosts(data);
               setLoading(false);
             })
             .catch((err) => {
-              console.error("خطا در دریافت دیتا:", err);
+              console.error("ارتباط برقرار نشد:", err);
               setLoading(false);
             });
         }, []);
@@ -100,8 +122,7 @@
           post.title.rendered.toLowerCase().includes(searchTerm.toLowerCase()),
         );
 
-        if (loading)
-          return <div className="loading">در حال بارگذاری مقالات...</div>;
+        if (loading) return <div className="loader"></div>;
 
         return (
           <div className="container">
@@ -150,5 +171,3 @@
     </script>
   </body>
 </html>
-
-
